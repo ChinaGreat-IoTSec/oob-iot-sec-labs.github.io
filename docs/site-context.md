@@ -1,0 +1,319 @@
+# OOB IoT Sec Labs 站点技术上下文
+
+> **用途**：每次开启新会话时，先让 AI 读取本文件以快速恢复上下文。  
+> **维护**：每次做出重要技术决策后更新本文件。
+
+---
+
+## 🌐 站点基本信息
+
+| 字段 | 值 |
+|------|----|
+| 网址 | https://oobsec.cn/ |
+| 仓库 | https://github.com/oob-iot-sec-labs/oob-iot-sec-labs.github.io |
+| 本地路径 | `C:\github\oob-iot-sec-labs.github.io\` |
+| 技术栈 | Jekyll + jekyll-theme-hacker |
+| 语言 | 纯中文（已移除双语功能） |
+| 部署 | GitHub Pages（main 分支自动构建） |
+
+---
+
+## ⚙️ Jekyll 配置（`_config.yml`）
+
+```yaml
+title: "OOB IoT Sec Labs"
+description: "IoT 网络安全社区"
+url: "https://oobsec.cn"
+baseurl: ""          # 组织 Pages，baseurl 为空
+theme: jekyll-theme-hacker
+markdown: kramdown
+```
+
+**关键注意事项**：
+- `baseurl` 为空，所有链接必须使用 `{{ '/path/' | relative_url }}` 而不是相对路径 `./path/`
+- 不能直接写 `href="/vulnerabilities/"` 需写 `href="{{ '/vulnerabilities/' | relative_url }}"`
+
+---
+
+## 🎨 主题与样式（`assets/css/style.scss`）
+
+### 颜色变量
+```scss
+--accent:      #ff8a1f   /* 主色：橙金色 */
+--accent-dim:  #d96a10   /* 暗色版 */
+--accent-hot:  #ff4d1f   /* 高亮强调 */
+--accent-soft: #ffb347   /* 柔和强调 */
+--bg:          #07090d   /* 背景 */
+--bg-card:     #10141d   /* 卡片背景 */
+--border:      rgba(255, 138, 31, 0.26)
+```
+
+### 已知 hacker 主题 quirk（坑）
+1. **`header h1::before`** 会自动插入 `"./ "` 前缀 → 已用 `content: "" !important` 覆盖
+2. **`h4/h5/h6` 颜色** 主题默认绿色，不随 h1/h2/h3 继承 → 已单独添加 `color: var(--accent) !important`
+3. **`header h2`（副标题）** 默认不可见 → 已单独设置颜色和字号
+4. **lang-switcher.html** 的 `<style>` 块是内联样式，不继承 CSS 变量 → 已清空（移除双语后不再需要）
+
+### 组件规范
+```scss
+/* 返回按钮 */
+.back-home   /* 模块页面使用文字，如“返回首页”“返回漏洞研究” */
+.article-back-nav /* 技术文章由全局布局自动生成浮动返回导航 */
+
+/* 卡片样式（用 inline style 触发 CSS 选择器） */
+style="border:1px solid #444"  /* → SCSS 会自动添加发光效果 */
+```
+
+---
+
+## 目录结构
+
+```
+oob-iot-sec-labs.github.io/
+├── _config.yml
+├── _includes/
+│   └── head-custom.html      # favicon 等 head 扩展
+├── _layouts/
+│   └── default.html          # 自定义 hacker 主题布局，包含站点头部与页脚
+├── assets/
+│   ├── css/style.scss        # 所有自定义样式
+│   └── images/
+│       ├── OOB.jpg
+│       ├── OOB.webp          # 首页头部优先使用，JPG 作为 fallback
+│       ├── favicon-96x96.png
+│       ├── apple-touch-icon.png
+│       └── Forti/CVE-2022-42475/   # 漏洞文章截图
+├── index.md                  # 首页
+├── vulnerabilities/
+│   ├── index.md              # 漏洞研究模块首页
+│   ├── CVE/
+│   │   ├── index.md          # CVE 列表页
+│   │   └── CVE-2022-42475/
+│   │       └── index.md      # 完整漏洞分析文章
+│   ├── research/
+│   │   └── index.md          # 原创研究（占位）
+│   └── vendor-labs/
+│       ├── index.md          # 品牌设备研究入口
+│       ├── citrix/
+│       │   └── index.md      # Citrix 专栏
+│       └── fortinet/
+│           └── index.md      # Fortinet 专栏
+├── tools/index.md
+├── resources/index.md
+├── writeups/index.md
+├── CONTRIBUTING.md
+├── README.md
+└── docs/
+    └── site-context.md       # 本文件
+```
+
+---
+
+## 📄 页面编写规范
+
+### Front Matter 模板
+```yaml
+---
+layout: default
+title: "页面标题"
+permalink: /path/to/page/
+---
+```
+
+### 页面结构模板
+```html
+# 页面标题
+
+<p>页面简介</p>
+
+<!-- 正文内容 -->
+
+<a href="{{ '/parent/' | relative_url }}" class="back-home" title="返回上一页">返回上一页</a>
+```
+
+### 返回按钮规则
+- 返回**首页**：文字使用“返回首页”，链接 `{{ '/' | relative_url }}`
+- 返回**上一级**：文字使用“返回上一级”或具体模块名，例如“返回漏洞研究”，链接 `{{ '/parent-path/' | relative_url }}`
+
+### 图片引用
+```markdown
+![图片描述]({{ '/assets/images/分类/文件名.png' | relative_url }})
+```
+图片存放路径：`assets/images/<厂商或分类>/<CVE编号或项目名>/`
+
+品牌设备研究文章推荐使用更明确的配图路径：`assets/images/vulnerabilities/vendor-labs/<厂商>/<主题>/`
+
+---
+
+## 品牌设备研究
+
+品牌设备研究归属于 `vulnerabilities/`，用于按厂商和设备组织系列文章，覆盖环境搭建、漏洞复现、漏洞分析、调试记录与修复验证。
+
+路径规范：
+
+```text
+vulnerabilities/vendor-labs/<vendor>/<topic>/index.md
+assets/images/vulnerabilities/vendor-labs/<vendor>/<topic>/
+```
+
+示例：
+
+```text
+vulnerabilities/vendor-labs/citrix/environment-setup/index.md
+assets/images/vulnerabilities/vendor-labs/citrix/environment-setup/
+```
+
+文章 Front Matter 示例：
+
+```yaml
+---
+layout: default
+title: "Citrix ADC 环境搭建"
+permalink: /vulnerabilities/vendor-labs/citrix/environment-setup/
+category: vulnerability
+tags:
+  - Citrix
+  - Citrix ADC
+  - environment-setup
+vendor: Citrix
+product: Citrix ADC
+author: ChinaGreat-IoTSec
+date: YYYY-MM-DD
+---
+```
+
+品牌设备研究文章返回导航由全局布局自动生成，文章内不要手写返回按钮。
+
+---
+
+## 漏洞文章模板
+
+新建漏洞文章路径：`vulnerabilities/CVE/CVE-XXXX-XXXXX/index.md`。
+
+技术文章以当前 `CVE-2022-42475` 文章结构为基准，完整模板和规范化检查清单见 `docs/technical-article-template.md`。后续投稿文章必须先完成规范化检查，确认结构、元数据、图片引用、参考资料和安全边界符合要求后再提交。
+
+```markdown
+---
+layout: default
+title: "CVE-XXXX-XXXXX | 设备名 漏洞类型简述"
+permalink: /vulnerabilities/CVE/CVE-XXXX-XXXXX/
+category: vulnerability
+tags:
+  - IoT
+  - CVE
+vendor: Vendor
+product: Product
+author: GitHubUsername
+date: YYYY-MM-DD
+---
+
+# CVE-XXXX-XXXXX — 设备名 漏洞类型 Pre-auth RCE
+
+<p>
+<img src="https://img.shields.io/badge/CVSS-X.X%20Critical-red" alt="CVSS">
+<img src="https://img.shields.io/badge/类型-漏洞类型-orange" alt="Type">
+<img src="https://img.shields.io/badge/影响-设备版本-blue" alt="Affected">
+</p>
+
+---
+
+## 摘要
+...
+
+## 基本信息
+...
+
+## 影响范围
+...
+
+## 研究环境与准备
+...
+
+## 漏洞分析
+...
+
+## 利用思路与验证
+...
+
+## 修复建议
+...
+
+## 参考资料
+...
+
+> **免责声明**：本文仅用于安全研究与教育目的。请勿将上述技术用于未经授权的系统。
+```
+
+技术文章返回导航由全局布局自动生成，文章内不要手写返回按钮。
+
+**添加完文章后记得更新：**
+1. `vulnerabilities/CVE/index.md` — 在统计表和列表中添加新条目
+2. `vulnerabilities/index.md` — 更新"最新收录"卡片
+
+如果文章属于品牌设备研究，还需要更新：
+1. `vulnerabilities/vendor-labs/index.md` — 厂商入口或模块说明
+2. `vulnerabilities/vendor-labs/<vendor>/index.md` — 对应厂商文章列表
+
+---
+
+## 协作工作流
+
+仓库 Owner：`@ChinaGreat-IoTSec`。
+
+协作原则：
+- Owner 负责站点整体框架、GitHub Pages/Jekyll 配置、布局样式、Logo、favicon、贡献规范与最终合并。
+- 其他成员主要通过 Pull Request 贡献 `vulnerabilities/`、`tools/`、`resources/`、`writeups/` 等子模块内容。
+- 内容 PR 不应混入 `_config.yml`、`_layouts/`、`_includes/`、`assets/css/`、`.github/`、`README.md`、`CONTRIBUTING.md`、`docs/site-context.md` 等框架或治理文件修改。
+- 仓库使用 `.github/CODEOWNERS` 指定审核负责人；当前所有路径均由 `@ChinaGreat-IoTSec` 审核，后续可拆分为 GitHub Team。
+- 建议 `main` 分支开启保护：禁止直接 push，要求 PR、Code Owner review、至少 1 个 approval、禁止 force push。
+
+### 分支命名规范
+```
+vuln/CVE-XXXX-XXXXX     漏洞文章
+tools/add-工具名         工具收录
+resources/add-内容简述   学习资料
+writeups/设备名-日期     实战记录
+fix/问题简述             样式或错误修复
+```
+
+### 每次提交流程
+```bash
+# 1. 同步最新 main
+git checkout main && git pull origin main
+
+# 2. 创建功能分支
+git checkout -b vuln/CVE-2024-XXXXX
+
+# 3. 写内容，提交
+git add .
+git commit -m "feat: add CVE-2024-XXXXX [厂商] 漏洞类型简述"
+
+# 4. 推送，发起 PR
+git push origin vuln/CVE-2024-XXXXX
+```
+
+### commit message 规范
+```
+feat: add CVE-2024-XXXXX FortiOS 堆溢出分析
+fix:  修复首页链接错误
+style: 更新卡片样式
+docs: 更新 CONTRIBUTING.md
+```
+
+### 责任分工建议
+| 成员类型 | 主要负责 | 不要随意修改 |
+|------|----------|-------------|
+| Owner | 站点框架、配置、样式、治理文件、最终合并 | — |
+| 漏洞研究贡献者 | `vulnerabilities/`、相关 `assets/images/` | `_config.yml`、`_layouts/`、`assets/css/`、`.github/` |
+| 安全工具贡献者 | `tools/`、相关 `assets/images/` | `_config.yml`、`_layouts/`、`assets/css/`、`.github/` |
+| 学习资料贡献者 | `resources/` | `_config.yml`、`_includes/`、`assets/css/`、`.github/` |
+| Writeup 贡献者 | `writeups/`、相关 `assets/images/` | `_config.yml`、`_layouts/`、`assets/css/`、`.github/` |
+
+> 全局文件修改必须在 PR 描述中说明原因、影响范围和验证方式。
+
+---
+
+## 🔄 会话恢复提示词
+
+每次新开会话，告诉 AI：
+> "请先读取 `C:\github\oob-iot-sec-labs.github.io\docs\site-context.md`，了解项目背景后继续协助我维护这个网站。"
